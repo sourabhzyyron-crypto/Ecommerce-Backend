@@ -50,7 +50,7 @@ export class ProductsService {
     id: number,
     updateProductDto: UpdateProductDto,
   ): Promise<{ message: string; data: Product }> {
-    await this.findOne(id); 
+    await this.findOne(id);
 
     try {
       const updatedProduct = await this.prisma.product.update({
@@ -71,7 +71,19 @@ export class ProductsService {
       throw new InternalServerErrorException('Failed to update product');
     }
   }
-  remove(id: number) {
-    return `This action removes a #${id} product`;
+  async remove(id: number): Promise<{ message: string }> {
+    const product = await this.prisma.product.findUnique({
+      where: { id },
+    });
+
+    if (!product) {
+      throw new NotFoundException(`Product with ID ${id} not found`);
+    }
+
+    await this.prisma.product.delete({
+      where: { id },
+    });
+
+    return { message: `Product with ID ${id} removed successfully` };
   }
 }
