@@ -6,6 +6,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { UsersModule } from './users/users.module';
 import { JwtModule } from '@nestjs/jwt';
 import { CartModule } from './cart/cart.module';
+import { CategoryModule } from './category/category.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { CartModule } from './cart/cart.module';
       signOptions: { expiresIn: '1d' }, 
     }),
     CartModule,
+    CategoryModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -1,7 +1,6 @@
 import {
   Injectable,
   InternalServerErrorException,
-  ConflictException,
   NotFoundException,
 } from '@nestjs/common';
 
@@ -21,7 +20,6 @@ export class CartService {
       const product = await this.prisma.product.findUnique({
         where: { id: productId },
       });
-  
 
       if (!product) {
         throw new NotFoundException(`Product not found`); // returns proper 404
@@ -90,77 +88,76 @@ export class CartService {
   }
 
   //Get cart by user
-    async getUserCart(userId: number) {
-      try {
-        const cart = await this.prisma.cart.findUnique({
-          where: { userId },
-          include: {
-            items: {
-              include: {
-                product: true,
-              },
+  async getUserCart(userId: number) {
+    try {
+      const cart = await this.prisma.cart.findUnique({
+        where: { userId },
+        include: {
+          items: {
+            include: {
+              product: true,
             },
           },
-        });
+        },
+      });
 
-        if (!cart) {
-          throw new NotFoundException('Cart not found');
-        }
-
-        return cart;
-      } catch (error: any) {
-        throw new InternalServerErrorException(error.message);
+      if (!cart) {
+        throw new NotFoundException('Cart not found');
       }
+
+      return cart;
+    } catch (error: any) {
+      throw new InternalServerErrorException(error.message);
     }
+  }
 
-    // Remove item from cart
-    async removeCartItem(id: number) {
-      try {
-        const cartItem = await this.prisma.cartItem.findUnique({
-          where: { id },
-        });
+  // Remove item from cart
+  async removeCartItem(id: number) {
+    try {
+      const cartItem = await this.prisma.cartItem.findUnique({
+        where: { id },
+      });
 
-        console.log(cartItem);
+      console.log(cartItem);
 
-        if (!cartItem) {
-          throw new NotFoundException('Cart item not found');
-        }
-
-        await this.prisma.cartItem.delete({
-          where: { id },
-        });
-
-        return {
-          message: 'Item removed from cart',
-        };
-      } catch (error: any) {
-        throw new InternalServerErrorException(error.message);
+      if (!cartItem) {
+        throw new NotFoundException('Cart item not found');
       }
+
+      await this.prisma.cartItem.delete({
+        where: { id },
+      });
+
+      return {
+        message: 'Item removed from cart',
+      };
+    } catch (error: any) {
+      throw new InternalServerErrorException(error.message);
     }
+  }
 
-    // Clear cart
-    async clearCart(userId: number) {
-      try {
-        const cart = await this.prisma.cart.findUnique({
-          where: { userId },
-        });
+  // Clear cart
+  async clearCart(userId: number) {
+    try {
+      const cart = await this.prisma.cart.findUnique({
+        where: { userId },
+      });
 
-        if (!cart) {
-          throw new NotFoundException('Cart not found');
-        }
-
-        await this.prisma.cartItem.deleteMany({
-          where: {
-            cartId: cart.id,
-          },
-        });
-
-        return {
-          message: 'Cart cleared successfully',
-        };
-      } catch (error: any) {
-        throw new InternalServerErrorException(error.message);
+      if (!cart) {
+        throw new NotFoundException('Cart not found');
       }
+
+      await this.prisma.cartItem.deleteMany({
+        where: {
+          cartId: cart.id,
+        },
+      });
+
+      return {
+        message: 'Cart cleared successfully',
+      };
+    } catch (error: any) {
+      throw new InternalServerErrorException(error.message);
     }
-  
+  }
 }
