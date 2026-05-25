@@ -8,21 +8,18 @@ import {
   Delete,
   UseInterceptors,
   UploadedFile,
+  UseGuards,
 } from '@nestjs/common';
 
 import { CategoryService } from './category.service';
-
+import { AuthGuard } from '../auth/jwt-auth/jwt-auth.guard';
 import { CreateCategoryDto } from './dto/create-category.dto';
-
-import { UpdateCategoryDto } from './dto/update-category.dto';
-
 import { FileInterceptor } from '@nestjs/platform-express';
-
 import { diskStorage } from 'multer';
-
 import { extname } from 'path';
 
 @Controller('category')
+@UseGuards(AuthGuard)
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
 
@@ -31,7 +28,7 @@ export class CategoryController {
     FileInterceptor('image', {
       storage: diskStorage({
         destination: './src/uploads/',
-        
+
         filename: (req, file, callback) => {
           console.log(file);
           const uniqueName = Date.now() + '-' + Math.round(Math.random() * 1e9);

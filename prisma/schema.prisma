@@ -61,3 +61,17 @@ model CartItem {
   User      User?    @relation(fields: [userId], references: [id])
   userId    Int?
 }
+
+model Brand {
+  id          Int       @id @default(autoincrement())
+  name        String    @unique
+  slug        String    @unique
+  logo        String?
+  description String?
+  isActive    Boolean   @default(true)
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+
+}
