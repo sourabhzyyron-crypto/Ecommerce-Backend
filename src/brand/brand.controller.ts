@@ -24,9 +24,4 @@ export class BrandController {
   findAll() {
     return this.brandService.findAll();
   }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.brandService.findOne(+id);
-  }
 }

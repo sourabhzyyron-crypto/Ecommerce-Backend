@@ -7,71 +7,227 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ─────────────────────────────────────────
+// USER
+// ─────────────────────────────────────────
 model User {
-  id        Int        @id @default(autoincrement())
+  id        Int      @id @default(autoincrement())
   name      String
-  email     String     @unique // @unique ensures Prisma-level uniqueness too
+  email     String   @unique
   password  String
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  carts     Cart[]
-  cartItems CartItem[]
-}
-
-model Product {
-  id          Int        @id @default(autoincrement())
-  title       String
-  description String
-  price       Float
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  CartItem    CartItem[]
-}
-
-model Category {
-  id             Int      @id @default(autoincrement())
-  category_name  String   @unique
-  category_image String
-  status         Boolean  @default(true)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-}
-
-model Cart {
-  id        Int        @id @default(autoincrement())
-  userId    Int        @unique
-  user      User       @relation(fields: [userId], references: [id])
-  items     CartItem[]
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-}
-
-model CartItem {
-  id        Int   @id @default(autoincrement())
-  cartId    Int
-  productId Int
-  quantity  Int   @default(1)
-  price     Float
-  total     Float
-
-  cart    Cart    @relation(fields: [cartId], references: [id])
-  product Product @relation(fields: [productId], references: [id])
-
+  role      Role     @default(CUSTOMER)
+  isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
-  User      User?    @relation(fields: [userId], references: [id])
-  userId    Int?
+  updatedAt DateTime @updatedAt
+
+  cart      Cart?
+  orders    Order[]
+  reviews   Review[]
+  addresses Address[]
 }
 
+enum Role {
+  CUSTOMER
+  ADMIN
+}
+
+// ─────────────────────────────────────────
+// ADDRESS (linked to User)
+// ─────────────────────────────────────────
+model Address {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  street     String
+  city       String
+  state      String
+  country    String
+  postalCode String
+  isDefault  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  orders Order[]
+}
+
+// ─────────────────────────────────────────
+// BRAND
+// ─────────────────────────────────────────
 model Brand {
-  id          Int       @id @default(autoincrement())
-  name        String    @unique
-  slug        String    @unique
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  slug        String   @unique
   logo        String?
   description String?
-  isActive    Boolean   @default(true)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  products Product[]
+}
 
+// ─────────────────────────────────────────
+// CATEGORY
+// ─────────────────────────────────────────
+model Category {
+  id            Int        @id @default(autoincrement())
+  name          String     @unique
+  slug          String     @unique
+  image         String?
+  parentId      Int? // self-relation for sub-categories
+  parent        Category?  @relation("SubCategories", fields: [parentId], references: [id])
+  subCategories Category[] @relation("SubCategories")
+  isActive      Boolean    @default(true)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
 
+  products Product[]
+}
+
+// ─────────────────────────────────────────
+// PRODUCT
+// ─────────────────────────────────────────
+model Product {
+  id           Int      @id @default(autoincrement())
+  title        String
+  slug         String   @unique
+  description  String   @db.Text
+  price        Decimal  @db.Decimal(10, 2) // Decimal is safer than Float for money
+  comparePrice Decimal? @db.Decimal(10, 2) // original price for showing discount
+  stock        Int      @default(0)
+  sku          String?  @unique // Stock Keeping Unit
+  images       String?  @db.Text // JSON array of image URLs
+  isActive     Boolean  @default(true)
+  isFeatured   Boolean  @default(false)
+
+  // Foreign Keys
+  brandId Int?
+  brand   Brand? @relation(fields: [brandId], references: [id], onDelete: SetNull)
+
+  categoryId Int?
+  category   Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  cartItems  CartItem[]
+  orderItems OrderItem[]
+  reviews    Review[]
+}
+
+// ─────────────────────────────────────────
+// CART  (one per user)
+// ─────────────────────────────────────────
+model Cart {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items CartItem[]
+}
+
+// ─────────────────────────────────────────
+// CART ITEM
+// ─────────────────────────────────────────
+model CartItem {
+  id     Int  @id @default(autoincrement())
+  cartId Int
+  cart   Cart @relation(fields: [cartId], references: [id], onDelete: Cascade)
+
+  productId Int
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  quantity Int     @default(1)
+  price    Decimal @db.Decimal(10, 2) // price snapshot at time of adding
+  total    Decimal @db.Decimal(10, 2)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([cartId, productId]) // prevent duplicate product rows in same cart
+}
+
+// ─────────────────────────────────────────
+// ORDER
+// ─────────────────────────────────────────
+model Order {
+  id     Int  @id @default(autoincrement())
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  addressId Int?
+  address   Address? @relation(fields: [addressId], references: [id], onDelete: SetNull)
+
+  status        OrderStatus   @default(PENDING)
+  paymentStatus PaymentStatus @default(UNPAID)
+  paymentMethod String?
+
+  subtotal       Decimal @db.Decimal(10, 2)
+  discount       Decimal @default(0) @db.Decimal(10, 2)
+  tax            Decimal @default(0) @db.Decimal(10, 2)
+  shippingCharge Decimal @default(0) @db.Decimal(10, 2)
+  grandTotal     Decimal @db.Decimal(10, 2)
+
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items OrderItem[]
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  RETURNED
+}
+
+enum PaymentStatus {
+  UNPAID
+  PAID
+  REFUNDED
+  FAILED
+}
+
+// ─────────────────────────────────────────
+// ORDER ITEM (snapshot of product at purchase)
+// ─────────────────────────────────────────
+model OrderItem {
+  id      Int   @id @default(autoincrement())
+  orderId Int
+  order   Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  productId Int
+  product   Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  quantity Int
+  price    Decimal @db.Decimal(10, 2)
+  total    Decimal @db.Decimal(10, 2)
+
+  createdAt DateTime @default(now())
+}
+
+// ─────────────────────────────────────────
+// REVIEW (Product review by User)
+// ─────────────────────────────────────────
+model Review {
+  id     Int  @id @default(autoincrement())
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  productId Int
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  rating    Int // 1 to 5
+  comment   String?  @db.Text
+  isVisible Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, productId]) // one review per user per product
 }

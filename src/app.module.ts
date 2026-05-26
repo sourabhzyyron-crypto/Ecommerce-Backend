@@ -8,6 +8,8 @@ import { JwtModule } from '@nestjs/jwt';
 import { CartModule } from './cart/cart.module';
 import { CategoryModule } from './category/category.module';
 import { BrandModule } from './brand/brand.module';
+import { AddressModule } from './address/address.module';
+import { OrdersModule } from './orders/orders.module';
 
 @Module({
   imports: [
@@ -22,6 +24,8 @@ import { BrandModule } from './brand/brand.module';
     CartModule,
     CategoryModule,
     BrandModule,
+    AddressModule,
+    OrdersModule,
   ],
   controllers: [AppController],
   providers: [AppService],

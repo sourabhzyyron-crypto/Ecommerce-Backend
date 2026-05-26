@@ -1,66 +1,59 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
-import { CreateCategoryDto } from './dto/create-category.dto';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import { extname } from 'path';
+import {
+  BadRequestException,
+  Injectable,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { CreateCategoryDto } from './dto/create-category.dto';
 
 @Injectable()
-export class CategoryService {
+export class CategoriesService {
   constructor(private prisma: PrismaService) {}
 
-  async create(createCategoryDto: CreateCategoryDto) {
-    const existingCategory = await this.prisma.category.findUnique({
+  async create(dto: CreateCategoryDto) {
+    const exists = await this.prisma.category.findUnique({
       where: {
-        category_name: createCategoryDto.category_name,
+        name: dto.name,
       },
     });
-    console.log(createCategoryDto);
 
-    if (existingCategory) {
+    if (exists) {
       throw new BadRequestException('Category already exists');
     }
 
-    const category_name = createCategoryDto.category_name;
+    const slug = dto.name
+      .toLowerCase()
+      .replace(/\s+/g, '-');
 
-    const category_image = createCategoryDto.category_image ?? '';
-    const status = createCategoryDto.status ?? true;
-
-    return await this.prisma.category.create({
+    return this.prisma.category.create({
       data: {
-        category_name,
-        category_image,
-        status,
+        name: dto.name,
+        slug,
+        image: dto.image,
+        parentId: dto.parentId,
+      },
+    });
+  }
+  async findOne(id: number) {
+    return this.prisma.category.findUnique({
+      where: {
+        id,
+      },
+    });
+  }
+
+  async remove(id: number) {
+    return this.prisma.category.delete({
+      where: {
+        id,
       },
     });
   }
 
   findAll() {
     return this.prisma.category.findMany({
-      where: {
-        status: true,
+      include: {
+        subCategories: true,
       },
     });
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} category`;
-  }
-
-  update(id: number) {
-    try {
-      return this.prisma.category.update({
-        where: {
-          id: id,
-        },
-        data: { status: false },
-      });
-    } catch (error) {
-      throw new BadRequestException('Failed to update category');
-    }
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} category`;
   }
 }

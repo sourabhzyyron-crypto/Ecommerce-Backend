@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 
 import { CartService } from './cart.service';
-import { CartItemDto } from './dto/create-cart.dto';
+import { AddCartDto } from './dto/create-cart.dto';
 
 @Controller('cart')
 export class CartController {
@@ -17,8 +17,9 @@ export class CartController {
 
   // Add product to cart
   @Post('add')
-  async addToCart(@Body() cartItemDto: CartItemDto) {
-    return this.cartService.addToCart(cartItemDto);
+  async addToCart(@Body() cartItemDto: AddCartDto) {
+    const userId = 1;
+    return this.cartService.addToCart(userId, cartItemDto);
   }
 
   // Get cart by userId

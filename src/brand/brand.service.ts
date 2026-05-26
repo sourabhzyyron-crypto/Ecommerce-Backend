@@ -1,48 +1,40 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+} from '@nestjs/common';
+import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateBrandDto } from './dto/create-brand.dto';
-import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class BrandsService {
   constructor(private prisma: PrismaService) {}
 
   async create(dto: CreateBrandDto) {
-   
-    const slug = dto.name.trim().toLowerCase().replace(/\s+/g, '-');
-
-    
-    const existingBrand = await this.prisma.brand.findFirst({
+    const exists = await this.prisma.brand.findUnique({
       where: {
-        OR: [{ name: dto.name }, { slug }],
+        name: dto.name,
       },
     });
 
-    if (existingBrand) {
+    if (exists) {
       throw new BadRequestException('Brand already exists');
     }
 
-    // Create brand
-    const brand = await this.prisma.brand.create({
+    const slug = dto.name
+      .toLowerCase()
+      .replace(/\s+/g, '-');
+
+    return this.prisma.brand.create({
       data: {
         name: dto.name,
         slug,
+        logo: dto.logo,
         description: dto.description,
       },
     });
-
-    return {
-      message: 'Brand created successfully',
-      data: brand,
-    };
   }
 
   findAll() {
     return this.prisma.brand.findMany();
-  }
-
-  findOne(id: number) {
-    return this.prisma.brand.findUnique({
-      where: { id },
-    });
   }
 }
