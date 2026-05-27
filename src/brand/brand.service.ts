@@ -1,7 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-} from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateBrandDto } from './dto/create-brand.dto';
 
@@ -20,9 +17,7 @@ export class BrandsService {
       throw new BadRequestException('Brand already exists');
     }
 
-    const slug = dto.name
-      .toLowerCase()
-      .replace(/\s+/g, '-');
+    const slug = dto.name.toLowerCase().replace(/\s+/g, '-');
 
     return this.prisma.brand.create({
       data: {

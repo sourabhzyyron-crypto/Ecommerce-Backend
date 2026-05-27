@@ -5,9 +5,8 @@ import { BrandController } from './brand.controller';
 import { PrismaModule } from 'src/prisma/prisma.module';
 
 @Module({
-   imports: [PrismaModule],
+  imports: [PrismaModule],
   controllers: [BrandController],
   providers: [BrandsService],
-  
 })
 export class BrandModule {}

@@ -21,6 +21,7 @@ async createOrder(
       items: true,
     },
   });
+  console.log('Cart:', cart); // Debug log
 
   if (!cart || cart.items.length === 0) {
     throw new BadRequestException(

@@ -199,7 +199,8 @@ enum PaymentStatus {
 // ─────────────────────────────────────────
 model OrderItem {
   id      Int   @id @default(autoincrement())
-  orderId Int
+
+
   order   Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
   productId Int

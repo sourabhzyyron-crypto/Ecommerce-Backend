@@ -15,7 +15,6 @@ import { CreateCategoryDto } from './dto/create-category.dto';
 export class CategoryController {
   constructor(private readonly categoryService: CategoriesService) {}
 
-  @Post('upload')
   @Post()
   create(@Body() createCategoryDto: CreateCategoryDto) {
     return this.categoryService.create(createCategoryDto);

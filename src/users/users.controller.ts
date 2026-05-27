@@ -16,4 +16,8 @@ export class UsersController {
   loginUser(@Body() loginUserDto: LoginUserDto) {
     return this.usersService.loginUser(loginUserDto);
   }
+  @Get()
+  getAllUsers() {
+    return this.usersService.getAllUsers();
+  }
 }

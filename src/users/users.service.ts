@@ -60,4 +60,14 @@ export class UsersService {
     const { password: _, ...result } = user;
     return { ...result, token, message: 'Login successful' };
   }
+  async getAllUsers() {
+    const users = await this.prisma.user.findMany({
+      select: {
+        id: true,
+        name: true,
+        email: true,
+      },
+    });
+    return users;
+  }
 }

@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
@@ -7,17 +15,12 @@ import { UpdateOrderDto } from './dto/update-order.dto';
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
-@Post()
-create(
-  @Body() createOrderDto: CreateOrderDto,
-) {
-  const userId = 1;
+  @Post()
+  create(@Body() createOrderDto: CreateOrderDto) {
+    const userId = 1;
 
-  return this.ordersService.createOrder(
-    userId,
-    createOrderDto,
-  );
-}
+    return this.ordersService.createOrder(userId, createOrderDto);
+  }
   @Get()
   findAll() {
     return this.ordersService.findAll();
@@ -27,7 +30,4 @@ create(
   findOne(@Param('id') id: string) {
     return this.ordersService.findOne(+id);
   }
-
-
-
 }
