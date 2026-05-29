@@ -157,6 +157,9 @@ model Order {
   userId Int
   user   User @relation(fields: [userId], references: [id], onDelete: Restrict)
 
+
+  orderId String @unique @default(uuid()) // public order ID for customers
+
   addressId Int?
   address   Address? @relation(fields: [addressId], references: [id], onDelete: SetNull)
 
@@ -198,10 +201,9 @@ enum PaymentStatus {
 // ORDER ITEM (snapshot of product at purchase)
 // ─────────────────────────────────────────
 model OrderItem {
-  id      Int   @id @default(autoincrement())
+  id Int @id @default(autoincrement())
 
-
-  order   Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  order Order @relation(fields: [id], references: [id], onDelete: Cascade)
 
   productId Int
   product   Product @relation(fields: [productId], references: [id], onDelete: Restrict)
@@ -231,4 +233,14 @@ model Review {
   updatedAt DateTime @updatedAt
 
   @@unique([userId, productId]) // one review per user per product
+}
+
+model Coupon {
+  id         Int      @id @default(autoincrement())
+  code       String   @unique
+  discount   Float
+  expiryDate DateTime
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
